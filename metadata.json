@@ -1,0 +1,6 @@
+{
+  "name": "Friendly Tech Troubleshooter",
+  "description": "An empowering, jargon-free troubleshooting assistant designed for older adults or anyone who wants simple, illustrated, step-by-step solutions to common tech problems.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
