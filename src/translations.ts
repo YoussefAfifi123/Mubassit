@@ -86,6 +86,13 @@ export interface TranslationDictionary {
   updateNameBtn: string;
   copiedNoteAlert: string;
   copyNoteBtn: string;
+  whatsappHelpBtn: string;
+  sendViaWhatsappBtn: string;
+  whatsappModalTitle: string;
+  whatsappModalDesc: string;
+  whatsappPhoneNumberLabel: string;
+  whatsappPhoneNumberPlaceholder: string;
+  openWhatsappBtn: string;
   editSymptomsBtn: string;
   startOverBtn: string;
   footerText: string;
@@ -204,6 +211,13 @@ export const TRANSLATIONS: Record<"en" | "ar", TranslationDictionary> = {
     updateNameBtn: "Update Name",
     copiedNoteAlert: "Copied Note!",
     copyNoteBtn: "Copy Note",
+    whatsappHelpBtn: "WhatsApp Help",
+    sendViaWhatsappBtn: "Send via WhatsApp",
+    whatsappModalTitle: "Send Help Request via WhatsApp",
+    whatsappModalDesc: "Easily send your issue details and troubleshooting steps directly to a family member or tech helper on WhatsApp.",
+    whatsappPhoneNumberLabel: "Helper's Phone Number (Optional)",
+    whatsappPhoneNumberPlaceholder: "e.g., +201000000000 (leave blank to choose contact in WhatsApp)",
+    openWhatsappBtn: "Open WhatsApp & Send",
     editSymptomsBtn: "Edit Symptoms & Details",
     startOverBtn: "Start Over",
     footerText: "Friendly Tech Troubleshooter © {year}. Designed as an empowering, loving space for older adults and tech beginners. All advice is designed to be physically safe and non-destructive.",
@@ -320,6 +334,13 @@ export const TRANSLATIONS: Record<"en" | "ar", TranslationDictionary> = {
     updateNameBtn: "تحديث الاسم",
     copiedNoteAlert: "تم نسخ الرسالة بنجاح!",
     copyNoteBtn: "نسخ الرسالة",
+    whatsappHelpBtn: "مساعدة واتساب",
+    sendViaWhatsappBtn: "إرسال عبر واتساب",
+    whatsappModalTitle: "طلب مساعدة عبر واتساب",
+    whatsappModalDesc: "ارسل التفاصيل والأعراض والخطوات اللي وصلت لها فوراً لأي حد من عيلتك أو أصحابك على واتساب بضغطة واحدة.",
+    whatsappPhoneNumberLabel: "رقم واتساب المساعد (اختياري)",
+    whatsappPhoneNumberPlaceholder: "مثال: 201000000000+ (أو اتركه فارغاً للاختيار من واتساب)",
+    openWhatsappBtn: "فتح واتساب وإرسال الرسالة",
     editSymptomsBtn: "تعديل الأعراض والتفاصيل",
     startOverBtn: "ابدأ من الأول جديد",
     footerText: "مصلح التكنولوجيا اللطيف © {year}. مصمم كـ مساحة تمكين وحب للمبتدئين وكبار السن. جميع النصائح مصممة لتكون آمنة تماماً وغير مدمرة للأجهزة.",

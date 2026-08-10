@@ -37,7 +37,9 @@ import {
   Facebook,
   Eye,
   List,
-  MapPin
+  MapPin,
+  MessageCircle,
+  Share2
 } from 'lucide-react';
 import { DEVICES, OS_OPTIONS, SYMPTOMS, NEGATIVE_SYMPTOMS, getLocalDiagnostic, LOCAL_DIAGNOSTICS } from './data';
 import { LOCAL_ARABIC_TRANSLATIONS } from './data_arabic';
@@ -122,6 +124,39 @@ export default function App() {
   const [generatedNote, setGeneratedNote] = useState<string>('');
   const [showNoteGenerator, setShowNoteGenerator] = useState<boolean>(false);
   const [copiedNote, setCopiedNote] = useState<boolean>(false);
+  const [helperPhone, setHelperPhone] = useState<string>('');
+  const [showWhatsappModal, setShowWhatsappModal] = useState<boolean>(false);
+
+  // Send to WhatsApp helper
+  const sendToWhatsApp = (phoneNum?: string, customText?: string) => {
+    let messageText = customText || generatedNote;
+    if (!messageText) {
+      if (diagnosisResult && selectedDevice) {
+        const transDevice = walkthroughLang === "ar"
+          ? (TRANSLATED_DEVICES.ar[selectedDevice] || 'الجهاز')
+          : (TRANSLATED_DEVICES.en[selectedDevice] || 'device');
+        const probName = triedAlternative
+          ? (walkthroughLang === 'ar' ? (diagnosisResult.alternativeProblemNameAr || diagnosisResult.alternativeProblemName) : diagnosisResult.alternativeProblemName)
+          : (walkthroughLang === 'ar' ? (diagnosisResult.problemNameAr || diagnosisResult.problemName) : diagnosisResult.problemName);
+
+        if (walkthroughLang === 'ar') {
+          messageText = `أهلاً يا غالي! أنا بستخدم موقع مُبَسِّط وبحاول أحل مشكلة في الـ ${transDevice} بتاعي ("${probName}").\nممكن تساعدني نبص عليه سوا لما تكون فاضي؟ ❤️`;
+        } else {
+          messageText = `Hi! I am using Mubassitt to troubleshoot an issue with my ${transDevice} ("${probName}").\nCould you help me take a look when you have a moment? ❤️`;
+        }
+      } else {
+        messageText = walkthroughLang === 'ar'
+          ? `أهلاً! أنا بستخدم موقع مُبَسِّط للتعامل مع مشكلة في جهازي، ومحتاج مساعدتك شوية لو فاضي ❤️`
+          : `Hi! I am using Mubassitt to troubleshoot a tech issue and could use your help when you have a moment ❤️`;
+      }
+    }
+
+    const cleanPhone = (phoneNum || helperPhone || '').replace(/[^0-9]/g, '');
+    const url = cleanPhone
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`
+      : `https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`;
+    window.open(url, '_blank');
+  };
 
   // Save history helper
   const handleSaveFix = () => {
@@ -346,6 +381,21 @@ If you have a moment later or on the weekend, could you help me take a look? No 
                 <Plus className="w-3 h-3" /> {t.extraClearTextBtn}
               </button>
             </div>
+
+            {/* WHATSAPP HELP BUTTON */}
+            <button
+              id="btn-whatsapp-header"
+              onClick={() => {
+                if (diagnosisResult && !generatedNote) {
+                  handleGenerateNote();
+                }
+                setShowWhatsappModal(true);
+              }}
+              className="bg-[#25D366] hover:bg-[#20bd5a] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+            >
+              <MessageCircle className="w-4 h-4 fill-current shrink-0" />
+              <span>{t.whatsappHelpBtn}</span>
+            </button>
 
             {currentStep !== 'intro' && (
               <button
@@ -1642,13 +1692,23 @@ If you have a moment later or on the weekend, could you help me take a look? No 
                             value={generatedNote}
                             className="w-full h-44 bg-[#FAF8F5] border border-[#EAE4DC] rounded-xl p-3.5 text-xs font-mono focus:outline-none select-all text-[#2B2927]"
                           />
-                          <button
-                            onClick={copyToClipboard}
-                            className="absolute bottom-3 right-3 bg-[#4F7E7A] hover:bg-[#3B5F5C] text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
-                          >
-                            {copiedNote ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                            {copiedNote ? t.copiedNoteBtn : t.copyNoteBtn}
-                          </button>
+                          <div className="flex flex-wrap gap-2 justify-end mt-2">
+                            <button
+                              id="btn-whatsapp-send-note"
+                              onClick={() => sendToWhatsApp()}
+                              className="bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                            >
+                              <MessageCircle className="w-4 h-4 fill-current shrink-0" />
+                              {t.sendViaWhatsappBtn}
+                            </button>
+                            <button
+                              onClick={copyToClipboard}
+                              className="bg-[#4F7E7A] hover:bg-[#3B5F5C] text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                            >
+                              {copiedNote ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                              {copiedNote ? t.copiedNoteBtn : t.copyNoteBtn}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1697,6 +1757,108 @@ If you have a moment later or on the weekend, could you help me take a look? No 
           </div>
         </div>
       </footer>
+
+      {/* FLOATING WHATSAPP ASSISTANCE BADGE */}
+      <div className="fixed bottom-6 ltr:right-6 rtl:left-6 z-40">
+        <button
+          id="btn-floating-whatsapp"
+          onClick={() => {
+            if (diagnosisResult && !generatedNote) {
+              handleGenerateNote();
+            }
+            setShowWhatsappModal(true);
+          }}
+          className="bg-[#25D366] hover:bg-[#20bd5a] text-white p-3.5 sm:px-4 sm:py-3 rounded-full shadow-xl flex items-center gap-2 transition-all hover:scale-105 cursor-pointer group"
+          title={t.whatsappHelpBtn}
+        >
+          <MessageCircle className="w-6 h-6 fill-current shrink-0" />
+          <span className="hidden sm:inline font-bold text-xs">{t.whatsappHelpBtn}</span>
+        </button>
+      </div>
+
+      {/* WHATSAPP HELP MODAL */}
+      {showWhatsappModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in" id="whatsapp-modal">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-[#EAE4DC] relative">
+            <button
+              id="btn-close-whatsapp-modal"
+              onClick={() => setShowWhatsappModal(false)}
+              className="absolute top-4 ltr:right-4 rtl:left-4 text-[#7A746E] hover:text-[#2B2927] p-2 rounded-full hover:bg-[#FAF8F5] cursor-pointer"
+            >
+              <XCircle className="w-6 h-6" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="bg-[#25D366] text-white p-3 rounded-2xl shrink-0">
+                <MessageCircle className="w-6 h-6 fill-current" />
+              </div>
+              <div>
+                <h3 className="font-serif font-bold text-lg text-[#2B2927]">
+                  {t.whatsappModalTitle}
+                </h3>
+                <p className="text-xs text-[#7A746E]">
+                  {t.whatsappModalDesc}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 bg-[#FAF8F5] p-4 rounded-2xl border border-[#EAE4DC]">
+              <div>
+                <label className="block text-xs font-semibold text-[#7A746E] mb-1">
+                  {t.whatsappPhoneNumberLabel}
+                </label>
+                <input
+                  type="text"
+                  value={helperPhone}
+                  onChange={(e) => setHelperPhone(e.target.value)}
+                  placeholder={t.whatsappPhoneNumberPlaceholder}
+                  className="w-full border border-[#EAE4DC] bg-white rounded-xl px-3 py-2 text-xs text-[#2B2927] focus:outline-none focus:border-[#25D366]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#7A746E] mb-1">
+                  {walkthroughLang === 'ar' ? 'معاينة الرسالة:' : 'Message Preview:'}
+                </label>
+                <textarea
+                  readOnly
+                  value={generatedNote || (
+                    selectedDevice && diagnosisResult
+                      ? (walkthroughLang === 'ar'
+                          ? `أهلاً! أنا بستخدم موقع مُبَسِّط وبحاول أحل مشكلة في ${TRANSLATED_DEVICES.ar[selectedDevice] || 'جهازي'}.\nممكن تساعدني نبص عليها سوا لما تكون فاضي؟ ❤️`
+                          : `Hi! I am using Mubassitt to fix an issue with my ${TRANSLATED_DEVICES.en[selectedDevice] || 'device'}.\nCould you help me take a look when you have a moment? ❤️`)
+                      : (walkthroughLang === 'ar'
+                          ? `أهلاً! أنا بستخدم موقع مُبَسِّط للتعامل مع مشكلة في جهازي، ومحتاج مساعدتك لو فاضي ❤️`
+                          : `Hi! I am using Mubassitt to fix a tech issue and could use your help when you have a moment ❤️`)
+                  )}
+                  className="w-full h-32 bg-white border border-[#EAE4DC] rounded-xl p-3 text-xs font-mono select-all text-[#2B2927] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                id="btn-cancel-whatsapp"
+                onClick={() => setShowWhatsappModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-[#7A746E] hover:text-[#2B2927] cursor-pointer"
+              >
+                {walkthroughLang === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                id="btn-confirm-whatsapp-send"
+                onClick={() => {
+                  sendToWhatsApp(helperPhone);
+                  setShowWhatsappModal(false);
+                }}
+                className="bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-md transition-all cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4 fill-current" />
+                {t.openWhatsappBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
