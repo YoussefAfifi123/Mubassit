@@ -152,9 +152,43 @@ export function AudioWalkthroughPlayer({
     }
     if (audioFallbackRef.current) {
       audioFallbackRef.current.pause();
-      audioFallbackRef.current.currentTime = 0;
-      audioFallbackRef.current = null;
+      audioFallbackRef.current.onended = null;
+      audioFallbackRef.current.onerror = null;
     }
+  };
+
+  const fallbackToWebSpeech = (textToSpeak: string, voice: SpeechSynthesisVoice | null) => {
+    if (!synthRef.current) return;
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utteranceRef.current = utterance;
+
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    } else {
+      utterance.lang = language === "ar" ? "ar-SA" : "en-US";
+    }
+
+    utterance.rate = language === "ar" ? 0.85 : 0.82;
+    utterance.pitch = 1.05;
+
+    utterance.onend = () => {
+      if (currentIndex !== null && currentIndex < maxIndex) {
+        setCurrentIndex(prev => (prev !== null ? prev + 1 : null));
+      } else {
+        handleStop();
+      }
+    };
+
+    utterance.onerror = (e) => {
+      console.warn("Speech Synthesis utterance error:", e);
+      handleStop();
+    };
+
+    synthRef.current.speak(utterance);
+    setIsPlaying(true);
+    setIsPaused(false);
   };
 
   // Read a specific item
@@ -185,17 +219,18 @@ export function AudioWalkthroughPlayer({
     const freshVoices = synthRef.current ? synthRef.current.getVoices() : availableVoices;
     const arabicVoice = language === "ar" ? findBestVoice(freshVoices, "ar") : null;
     const englishVoice = language === "en" ? findBestVoice(freshVoices, "en") : null;
-    const chosenVoice = language === "ar" ? arabicVoice : englishVoice;
 
-    // IF in Arabic mode AND the browser/OS has NO Arabic voice installed:
-    // Fall back to server audio proxy `/api/tts` for 100% natural Arabic pronunciation
-    if (language === "ar" && !arabicVoice) {
+    // For Arabic, always use high-quality server TTS for natural Arabic speech
+    if (language === "ar") {
+      if (!audioFallbackRef.current) {
+        audioFallbackRef.current = new Audio();
+      }
+      const audio = audioFallbackRef.current;
       const audioUrl = `/api/tts?text=${encodeURIComponent(textToSpeak)}&lang=ar`;
-      const audio = new Audio(audioUrl);
-      audioFallbackRef.current = audio;
+      audio.src = audioUrl;
 
       audio.onended = () => {
-        if (currentIndex < maxIndex) {
+        if (currentIndex !== null && currentIndex < maxIndex) {
           setCurrentIndex(prev => (prev !== null ? prev + 1 : null));
         } else {
           handleStop();
@@ -204,8 +239,7 @@ export function AudioWalkthroughPlayer({
 
       audio.onerror = () => {
         console.warn("Audio fallback error, trying browser speech synthesis");
-        // Fallback to synthesis if audio fails
-        fallbackToWebSpeech(textToSpeak, null);
+        fallbackToWebSpeech(textToSpeak, arabicVoice);
       };
 
       audio.play().then(() => {
@@ -213,47 +247,13 @@ export function AudioWalkthroughPlayer({
         setIsPaused(false);
       }).catch(err => {
         console.warn("Audio play blocked/failed:", err);
-        fallbackToWebSpeech(textToSpeak, null);
+        fallbackToWebSpeech(textToSpeak, arabicVoice);
       });
       return;
     }
 
-    // Otherwise use Web Speech API
-    fallbackToWebSpeech(textToSpeak, chosenVoice);
-  };
-
-  const fallbackToWebSpeech = (textToSpeak: string, voice: SpeechSynthesisVoice | null) => {
-    if (!synthRef.current) return;
-
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utteranceRef.current = utterance;
-
-    utterance.lang = language === "ar" ? "ar-EG" : "en-US";
-    if (voice) {
-      utterance.voice = voice;
-    }
-
-    utterance.rate = language === "ar" ? 0.85 : 0.82;
-    utterance.pitch = 1.05;
-
-    utterance.onend = () => {
-      if (currentIndex < maxIndex) {
-        setCurrentIndex(prev => (prev !== null ? prev + 1 : null));
-      } else {
-        handleStop();
-      }
-    };
-
-    utterance.onerror = (e) => {
-      console.warn("Speech Synthesis utterance error:", e);
-      if (isPlaying) {
-        handleStop();
-      }
-    };
-
-    synthRef.current.speak(utterance);
-    setIsPlaying(true);
-    setIsPaused(false);
+    // Otherwise use Web Speech API for English
+    fallbackToWebSpeech(textToSpeak, englishVoice);
   };
 
   // Re-run speech whenever index or language changes while playing
@@ -264,9 +264,14 @@ export function AudioWalkthroughPlayer({
   }, [currentIndex, language]);
 
   const handlePlay = () => {
+    // Instantiate Audio element inside user gesture context so browser unlocks autoplay
+    if (!audioFallbackRef.current) {
+      audioFallbackRef.current = new Audio();
+    }
+
     if (isPaused) {
-      if (audioFallbackRef.current) {
-        audioFallbackRef.current.play();
+      if (audioFallbackRef.current && audioFallbackRef.current.src) {
+        audioFallbackRef.current.play().catch(() => {});
       } else if (synthRef.current) {
         synthRef.current.resume();
       }
