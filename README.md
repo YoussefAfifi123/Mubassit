@@ -1,4 +1,4 @@
-# 🛠️ Friendly Tech Troubleshooter | دليل الدعم الفني المبسط
+# 🛠️ Mubassitt (مُبَسِّط) | Friendly Tech Troubleshooter
 
 > **An accessible, jargon-free tech support assistant designed for older adults and non-tech users, providing illustrated, step-by-step solutions with audio walkthroughs and interactive device inspectors.**
 
@@ -6,7 +6,7 @@
 
 ## 🌟 Overview
 
-Technology troubleshooting can often be overwhelming, confusing, or filled with intimidating technical jargon. **Friendly Tech Troubleshooter** bridges this gap by turning complex device issues into gentle, step-by-step visual guides that anyone can follow with confidence.
+Technology troubleshooting can often be overwhelming, confusing, or filled with intimidating technical jargon. **Mubassitt (مُبَسِّط)** bridges this gap by turning complex device issues into gentle, step-by-step visual guides that anyone can follow with confidence.
 
 Whether fixing a frozen laptop, an unresponsive router, a muted smartphone, or a jammed printer, this app guides users with clear diagrams, interactive hardware maps, audio narration, and real-time progress tracking.
 

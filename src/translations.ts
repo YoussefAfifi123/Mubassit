@@ -119,8 +119,8 @@ export interface TranslationDictionary {
 
 export const TRANSLATIONS: Record<"en" | "ar", TranslationDictionary> = {
   en: {
-    brandTitle: "Friendly Tech Troubleshooter",
-    brandSubtitle: "Empowering you to master your devices, step-by-step.",
+    brandTitle: "Mubassitt",
+    brandSubtitle: "Simplifying tech troubleshooting for everyone, step-by-step.",
     textSizeLabel: "Text Size:",
     normalTextBtn: "Normal",
     extraClearTextBtn: "Extra Clear",
@@ -235,8 +235,8 @@ export const TRANSLATIONS: Record<"en" | "ar", TranslationDictionary> = {
     laserPrinterDesc: "You slide out a large, heavy, long black tube. This is dry dust ink (toner). It prints incredibly fast. Common brands: HP LaserJet, Brother HL.",
   },
   ar: {
-    brandTitle: "مصلح التكنولوجيا اللطيف",
-    brandSubtitle: "بنسهلك التعامل مع أجهزتك خطوة بخطوة، وبكل صبر.",
+    brandTitle: "مُبَسِّط | Mubassitt",
+    brandSubtitle: "تبسيط التكنولوجيا والتعامل مع أجهزتك خطوة بخطوة.",
     textSizeLabel: "حجم الخط:",
     normalTextBtn: "عادي",
     extraClearTextBtn: "كبير وواضح جداً",

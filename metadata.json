@@ -1,6 +1,6 @@
 {
-  "name": "Friendly Tech Troubleshooter",
-  "description": "An empowering, jargon-free troubleshooting assistant designed for older adults or anyone who wants simple, illustrated, step-by-step solutions to common tech problems.",
+  "name": "Mubassitt",
+  "description": "Mubassitt (مُبَسِّط) is an empowering, jargon-free tech troubleshooter that simplifies device issues into step-by-step visual guides, interactive hardware maps, and friendly audio narration.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
