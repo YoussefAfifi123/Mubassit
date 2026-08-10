@@ -49,6 +49,37 @@ function checkRateLimit(ip: string): { limited: boolean; retryAfter: number } {
   return { limited: false, retryAfter: 0 };
 }
 
+// API Endpoint for TTS audio proxy (helps when client browser lacks native Arabic TTS)
+app.get("/api/tts", async (req: Request, res: Response) => {
+  try {
+    const text = (req.query.text as string || "").trim();
+    const lang = (req.query.lang as string || "ar").trim();
+
+    if (!text) {
+      return res.status(400).send("Text parameter is required");
+    }
+
+    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text.slice(0, 200))}&tl=${lang}&client=tw-ob`;
+    const response = await fetch(ttsUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(500).send("TTS generation failed");
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.send(Buffer.from(arrayBuffer));
+  } catch (err) {
+    console.error("TTS error:", err);
+    return res.status(500).send("TTS server error");
+  }
+});
+
 // API Endpoint for troubleshooting diagnostics
 app.post("/api/diagnose", async (req: Request, res: Response) => {
   try {

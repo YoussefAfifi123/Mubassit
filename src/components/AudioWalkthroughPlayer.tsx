@@ -10,6 +10,76 @@ interface AudioWalkthroughPlayerProps {
   onActiveSpokenIndexChange: (index: number | null) => void;
 }
 
+const ARABIC_ORDINAL_STEPS = [
+  "الأولى",
+  "الثانية",
+  "الثالثة",
+  "الرابعة",
+  "الخامسة",
+  "السادسة",
+  "السابعة",
+  "الثامنة",
+  "التاسعة",
+  "العاشرة"
+];
+
+// Helper to convert digits to words in Arabic so speech engines never skip words or read just "1, 2, 3"
+function prepareArabicSpeechText(text: string, stepIndex?: number): string {
+  let cleaned = text.trim();
+
+  if (stepIndex !== undefined && stepIndex >= 0) {
+    const ordinal = ARABIC_ORDINAL_STEPS[stepIndex] || `رقم ${stepIndex + 1}`;
+    cleaned = `الخطوة ${ordinal}: ${cleaned}`;
+  }
+
+  // Replace standalone numbers with spoken Arabic words
+  cleaned = cleaned
+    .replace(/\b10\b/g, 'عشرة')
+    .replace(/\b1\b/g, 'واحد')
+    .replace(/\b2\b/g, 'اتنين')
+    .replace(/\b3\b/g, 'تلاتة')
+    .replace(/\b4\b/g, 'أربعة')
+    .replace(/\b5\b/g, 'خمسة')
+    .replace(/\b6\b/g, 'ستة')
+    .replace(/\b7\b/g, 'سبعة')
+    .replace(/\b8\b/g, 'تمانية')
+    .replace(/\b9\b/g, 'تسعة');
+
+  return cleaned;
+}
+
+// Find best matching voice for a given language
+function findBestVoice(voices: SpeechSynthesisVoice[], lang: "en" | "ar"): SpeechSynthesisVoice | null {
+  if (!voices || voices.length === 0) return null;
+
+  if (lang === "ar") {
+    // 1. Egyptian Arabic dialect
+    const egVoice = voices.find(v => {
+      const l = v.lang.toLowerCase().replace('_', '-');
+      return l.includes('ar-eg') || l.includes('ar_eg');
+    });
+    if (egVoice) return egVoice;
+
+    // 2. Any Arabic locale (ar-SA, ar-AE, etc.)
+    const arVoice = voices.find(v => {
+      const l = v.lang.toLowerCase().replace('_', '-');
+      return l.startsWith('ar') || l.startsWith('ara') || l === 'ar';
+    });
+    if (arVoice) return arVoice;
+
+    // 3. Name contains Arabic or known Arabic voice names
+    const arNameVoice = voices.find(v => {
+      const n = v.name.toLowerCase();
+      return n.includes('arabic') || n.includes('عرب') || n.includes('maged') || n.includes('tarik') || n.includes('laila') || n.includes('salma') || n.includes('hoda') || n.includes('naayf') || n.includes('zeina');
+    });
+    if (arNameVoice) return arNameVoice;
+
+    return null;
+  } else {
+    return voices.find(v => v.lang.toLowerCase().replace('_', '-').startsWith('en')) || null;
+  }
+}
+
 export function AudioWalkthroughPlayer({
   diagnosisResult,
   triedAlternative,
@@ -25,6 +95,7 @@ export function AudioWalkthroughPlayer({
   
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioFallbackRef = useRef<HTMLAudioElement | null>(null);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   // Get active texts based on current options
@@ -63,6 +134,10 @@ export function AudioWalkthroughPlayer({
       if (synthRef.current) {
         synthRef.current.cancel();
       }
+      if (audioFallbackRef.current) {
+        audioFallbackRef.current.pause();
+        audioFallbackRef.current = null;
+      }
     };
   }, []);
 
@@ -71,55 +146,100 @@ export function AudioWalkthroughPlayer({
     onActiveSpokenIndexChange(currentIndex);
   }, [currentIndex, onActiveSpokenIndexChange]);
 
+  const stopAllAudio = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+    }
+    if (audioFallbackRef.current) {
+      audioFallbackRef.current.pause();
+      audioFallbackRef.current.currentTime = 0;
+      audioFallbackRef.current = null;
+    }
+  };
+
   // Read a specific item
   const speakCurrentItem = () => {
-    if (!synthRef.current || currentIndex === null) return;
+    if (currentIndex === null) return;
 
-    // Cancel anything currently playing
-    synthRef.current.cancel();
+    stopAllAudio();
 
     let textToSpeak = "";
     
     if (currentIndex === -2) {
       textToSpeak = language === "ar" 
-        ? `الحل المقترح هو: ${problemName}` 
+        ? `الحل المقترح هو: ${prepareArabicSpeechText(problemName)}` 
         : `Suggested Solution: ${problemName}`;
     } else if (currentIndex === -1) {
       textToSpeak = language === "ar"
-        ? `التفسير: ${explanation}`
+        ? `التفسير البسيط: ${prepareArabicSpeechText(explanation)}`
         : `Explanation: ${explanation}`;
     } else if (currentIndex >= 0 && currentIndex < steps.length) {
-      const stepNum = currentIndex + 1;
       textToSpeak = language === "ar"
-        ? `الخطوة ${stepNum}: ${steps[currentIndex]}`
-        : `Step ${stepNum}: ${steps[currentIndex]}`;
+        ? prepareArabicSpeechText(steps[currentIndex], currentIndex)
+        : `Step ${currentIndex + 1}: ${steps[currentIndex]}`;
     }
 
     if (!textToSpeak) return;
 
+    // Fetch fresh voice list from browser
+    const freshVoices = synthRef.current ? synthRef.current.getVoices() : availableVoices;
+    const arabicVoice = language === "ar" ? findBestVoice(freshVoices, "ar") : null;
+    const englishVoice = language === "en" ? findBestVoice(freshVoices, "en") : null;
+    const chosenVoice = language === "ar" ? arabicVoice : englishVoice;
+
+    // IF in Arabic mode AND the browser/OS has NO Arabic voice installed:
+    // Fall back to server audio proxy `/api/tts` for 100% natural Arabic pronunciation
+    if (language === "ar" && !arabicVoice) {
+      const audioUrl = `/api/tts?text=${encodeURIComponent(textToSpeak)}&lang=ar`;
+      const audio = new Audio(audioUrl);
+      audioFallbackRef.current = audio;
+
+      audio.onended = () => {
+        if (currentIndex < maxIndex) {
+          setCurrentIndex(prev => (prev !== null ? prev + 1 : null));
+        } else {
+          handleStop();
+        }
+      };
+
+      audio.onerror = () => {
+        console.warn("Audio fallback error, trying browser speech synthesis");
+        // Fallback to synthesis if audio fails
+        fallbackToWebSpeech(textToSpeak, null);
+      };
+
+      audio.play().then(() => {
+        setIsPlaying(true);
+        setIsPaused(false);
+      }).catch(err => {
+        console.warn("Audio play blocked/failed:", err);
+        fallbackToWebSpeech(textToSpeak, null);
+      });
+      return;
+    }
+
+    // Otherwise use Web Speech API
+    fallbackToWebSpeech(textToSpeak, chosenVoice);
+  };
+
+  const fallbackToWebSpeech = (textToSpeak: string, voice: SpeechSynthesisVoice | null) => {
+    if (!synthRef.current) return;
+
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utteranceRef.current = utterance;
 
-    // Configure language
     utterance.lang = language === "ar" ? "ar-EG" : "en-US";
-
-    // Attempt to bind a specific voice if available
-    const targetLang = language === "ar" ? "ar" : "en";
-    const foundVoice = availableVoices.find(v => v.lang.toLowerCase().startsWith(targetLang));
-    if (foundVoice) {
-      utterance.voice = foundVoice;
+    if (voice) {
+      utterance.voice = voice;
     }
 
-    // Set voice properties for clear reading (a bit slower for seniors)
     utterance.rate = language === "ar" ? 0.85 : 0.82;
-    utterance.pitch = 1.05; // Slightly warmer/friendlier tone
+    utterance.pitch = 1.05;
 
     utterance.onend = () => {
-      // Automatically advance to the next item
       if (currentIndex < maxIndex) {
         setCurrentIndex(prev => (prev !== null ? prev + 1 : null));
       } else {
-        // Finished everything!
         handleStop();
       }
     };
@@ -144,19 +264,17 @@ export function AudioWalkthroughPlayer({
   }, [currentIndex, language]);
 
   const handlePlay = () => {
-    if (!synthRef.current) {
-      alert("Text-to-speech is not supported in this browser. Try on Chrome, Safari, or Edge!");
-      return;
-    }
-
     if (isPaused) {
-      synthRef.current.resume();
+      if (audioFallbackRef.current) {
+        audioFallbackRef.current.play();
+      } else if (synthRef.current) {
+        synthRef.current.resume();
+      }
       setIsPaused(false);
       setIsPlaying(true);
     } else {
       setIsPlaying(true);
       setIsPaused(false);
-      // Start from the beginning if no index is active
       if (currentIndex === null) {
         setCurrentIndex(-2);
       } else {
@@ -166,17 +284,17 @@ export function AudioWalkthroughPlayer({
   };
 
   const handlePause = () => {
-    if (synthRef.current) {
+    if (audioFallbackRef.current) {
+      audioFallbackRef.current.pause();
+    } else if (synthRef.current) {
       synthRef.current.pause();
-      setIsPaused(true);
-      setIsPlaying(false);
     }
+    setIsPaused(true);
+    setIsPlaying(false);
   };
 
   const handleStop = () => {
-    if (synthRef.current) {
-      synthRef.current.cancel();
-    }
+    stopAllAudio();
     setIsPlaying(false);
     setIsPaused(false);
     setCurrentIndex(null);
@@ -201,12 +319,11 @@ export function AudioWalkthroughPlayer({
   const handleLanguageToggle = () => {
     const nextLang = language === "en" ? "ar" : "en";
     onLanguageChange(nextLang);
-    // If we were playing, the language change triggers the speech refresh automatically
   };
 
   const getStatusText = () => {
     if (currentIndex === null) {
-      return language === "ar" ? "اضغط تشغيل للبدء في الاستماع" : "Click Play to listen aloud";
+      return language === "ar" ? "اضغط استماع لقراءة الخطوات بصوت واضح" : "Click Read to Me to listen aloud";
     }
     if (currentIndex === -2) {
       return language === "ar" ? "نقرأ الآن: اسم المشكلة" : "Now reading: Problem Name";
@@ -215,7 +332,7 @@ export function AudioWalkthroughPlayer({
       return language === "ar" ? "نقرأ الآن: الشرح البسيط" : "Now reading: Short Explanation";
     }
     return language === "ar" 
-      ? `نقرأ الآن: الخطوة رقم ${currentIndex + 1}` 
+      ? `نقرأ الآن: الخطوة ${ARABIC_ORDINAL_STEPS[currentIndex] || currentIndex + 1}` 
       : `Now reading: Step ${currentIndex + 1} of ${steps.length}`;
   };
 
@@ -232,7 +349,7 @@ export function AudioWalkthroughPlayer({
             </h3>
             <p className="text-xs text-[#7A746E]">
               {language === "ar" 
-                ? "اسمع الخطوات مشروحة ببطء وبلهجة مصرية واضحة." 
+                ? "اسمع الخطوات مشروحة بصوت واضع وبسرعة مريحة." 
                 : "Listen to the guide read aloud slowly and clearly."}
             </p>
           </div>
@@ -316,9 +433,10 @@ export function AudioWalkthroughPlayer({
       {/* QUICK TIP FOR ACCESSIBILITY */}
       <p className="text-[10px] text-center text-[#A59F99] leading-relaxed">
         {language === "ar" 
-          ? "💡 تلميح: لو حابب تسمع خطوة معينة تاني، اضغط عليها في القايمة تحت وهيتم تحديدها وقراءتها!"
+          ? "💡 تلميح: يتوفر الصوت باللغة العربية بوضوح ممتاز عبر تقنية تحويل النص إلى صوت."
           : "💡 Tip: You can jump back or forward anytime using the left and right arrows."}
       </p>
     </div>
   );
 }
+
