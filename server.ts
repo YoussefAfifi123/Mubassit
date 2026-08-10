@@ -28,9 +28,42 @@ const getGeminiClient = (): GoogleGenAI | null => {
   });
 };
 
+// Rate Limiter State (Max 5 requests per user per minute)
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 5;
+const ipRequestMap = new Map<string, number[]>();
+
+function checkRateLimit(ip: string): { limited: boolean; retryAfter: number } {
+  const now = Date.now();
+  const timestamps = ipRequestMap.get(ip) || [];
+  const recentTimestamps = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+
+  if (recentTimestamps.length >= MAX_REQUESTS_PER_WINDOW) {
+    const oldestInWindow = recentTimestamps[0];
+    const retryAfter = Math.ceil((oldestInWindow + RATE_LIMIT_WINDOW_MS - now) / 1000);
+    return { limited: true, retryAfter: Math.max(1, retryAfter) };
+  }
+
+  recentTimestamps.push(now);
+  ipRequestMap.set(ip, recentTimestamps);
+  return { limited: false, retryAfter: 0 };
+}
+
 // API Endpoint for troubleshooting diagnostics
 app.post("/api/diagnose", async (req: Request, res: Response) => {
   try {
+    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() || req.ip || req.socket.remoteAddress || '127.0.0.1';
+    const rateLimit = checkRateLimit(clientIp);
+
+    if (rateLimit.limited) {
+      res.setHeader('Retry-After', rateLimit.retryAfter);
+      return res.status(429).json({
+        success: false,
+        error: "RATE_LIMIT_EXCEEDED",
+        message: `Rate limit exceeded. Maximum 5 requests per minute allowed. Please try again in ${rateLimit.retryAfter} seconds.`
+      });
+    }
+
     const { deviceType, os, symptoms, customSymptom, negativeSymptoms, failedAttempts } = req.body;
 
     const ai = getGeminiClient();
