@@ -39,6 +39,18 @@ export const DEVICES: DeviceOption[] = [
     iconName: 'Facebook'
   },
   {
+    id: 'whatsapp',
+    label: 'WhatsApp Help',
+    description: 'Sending messages, voice notes, status, camera, or login issues.',
+    iconName: 'MessageCircle'
+  },
+  {
+    id: 'messenger',
+    label: 'Messenger Help',
+    description: 'Facebook Messenger chats, call issues, voice notes, and notification fixes.',
+    iconName: 'MessageSquare'
+  },
+  {
     id: 'other',
     label: 'Something Else',
     description: 'Smart speakers, smartwatches, digital cameras, or other devices.',
@@ -46,7 +58,7 @@ export const DEVICES: DeviceOption[] = [
   }
 ];
 
-export const OS_OPTIONS: Record<Exclude<DeviceType, 'other' | 'facebook'>, OsOption[]> = {
+export const OS_OPTIONS: Record<Exclude<DeviceType, 'other' | 'facebook' | 'whatsapp' | 'messenger'>, OsOption[]> = {
   laptop_computer: [
     {
       id: 'windows',
@@ -190,6 +202,19 @@ export const SYMPTOMS: Record<DeviceType, SymptomOption[]> = {
     { id: 'not_loading', label: 'Facebook app/website won\'t open at all', description: 'The screen stays white, or there is a spinning circle that never stops.' },
     { id: 'no_posts', label: 'Feed won\'t update or photos won\'t load', description: 'You see the same old posts from last week, or pictures are missing.' }
   ],
+  whatsapp: [
+    { id: 'wont_send', label: 'Messages won\'t send (One checkmark / Clock icon)', description: 'Your text or photos stay stuck with a single checkmark or a small clock.' },
+    { id: 'no_notifications', label: 'No notifications for new messages', description: 'You don\'t hear a chime or get alerts when someone sends you a WhatsApp message.' },
+    { id: 'voice_note_fail', label: 'Cannot record or hear Voice Notes', description: 'When you hold the microphone, it doesn\'t record, or incoming voice notes are silent.' },
+    { id: 'media_download_fail', label: 'Photos or videos won\'t download / load', description: 'Tapping a photo or video says "Download failed" or spins forever.' },
+    { id: 'login_code', label: 'WhatsApp code / account verification issue', description: 'It asks for a 6-digit code or says your phone number is temporarily unavailable.' }
+  ],
+  messenger: [
+    { id: 'wont_send', label: 'Messages won\'t send / Sending failed', description: 'Chats show "Sending..." or a red exclamation mark and won\'t reach the recipient.' },
+    { id: 'calls_fail', label: 'Voice or video calls keep dropping / failing', description: 'Calling someone in Messenger rings once and disconnects or shows "Call Failed".' },
+    { id: 'no_sound', label: 'No sound on voice messages or calls', description: 'You can\'t hear the other person\'s voice or hear incoming message chimes.' },
+    { id: 'chat_heads', label: 'Chat bubbles / notifications disappeared', description: 'Messages don\'t pop up on your screen when someone writes to you.' }
+  ],
   other: [
     { id: 'wont_turn_on', label: 'The device won\'t turn on at all', description: 'It seems completely lifeless and dead.' },
     { id: 'bluetooth_fail', label: 'Cannot connect to Bluetooth', description: 'It won\'t link with your phone or speakers.' },
@@ -224,6 +249,14 @@ export const NEGATIVE_SYMPTOMS: Record<DeviceType, NegativeSymptomOption[]> = {
     { id: 'know_password', label: 'I am writing down the password exactly', description: 'I am careful about spelling and did not forget it.' },
     { id: 'internet_fine', label: 'My internet and other apps work fine', description: 'YouTube or Google loads perfectly on the same device.' },
     { id: 'real_app', label: 'I am using the official Facebook app / website', description: 'I didn\'t click on any strange link from a text message.' }
+  ],
+  whatsapp: [
+    { id: 'internet_fine', label: 'My internet and other apps work fine', description: 'YouTube or Google loads perfectly on the same phone.' },
+    { id: 'phone_number_active', label: 'My SIM card is active and receiving SMS', description: 'Standard text messages work fine.' }
+  ],
+  messenger: [
+    { id: 'internet_fine', label: 'My internet and other apps work fine', description: 'Websites and YouTube load fine.' },
+    { id: 'facebook_working', label: 'My main Facebook account is active', description: 'I am not completely logged out of Facebook.' }
   ],
   other: [
     { id: 'plugged_in', label: 'The device is definitely plugged in / charged', description: 'Power source is working.' }
@@ -724,6 +757,157 @@ export const LOCAL_DIAGNOSTICS: Record<DeviceType, Record<string, DiagnosticResu
       alternativeSteps: [
         "If you are on mobile data (not Wi-Fi), Facebook has a setting that hides pictures and updates to save you money.",
         "Go to Facebook Menu -> Settings -> Media, and check if 'Data Saver' is turned on. Turn it off to let pictures load beautifully!"
+      ]
+    }
+  },
+  whatsapp: {
+    wont_send: {
+      problemName: "Stuck WhatsApp Messages or Pending Connection",
+      explanation: "When WhatsApp messages show a small clock icon or stay on a single checkmark, it means the message hasn't reached WhatsApp's servers or the recipient's phone yet. Don't worry, your messages are safe and will deliver as soon as connection refreshes!",
+      steps: [
+        "Check your Wi-Fi or Mobile Data connection. Swipe down from the top of your phone screen, turn Airplane Mode ON for 10 seconds, then turn it OFF. This refreshes your internet connection.",
+        "Force close the WhatsApp app: Swipe up from the bottom of your screen to see open apps, then swipe WhatsApp up and off the screen. Reopen WhatsApp after 5 seconds.",
+        "Ensure WhatsApp is not blocked in background battery saver settings. Open Phone Settings -> Battery -> ensure 'Battery Saver' is not restricting WhatsApp.",
+        "Check if you accidentally archived or blocked the chat. Open the chat and ensure you see the typing bar at the bottom."
+      ],
+      youtubeSearchQuery: "whatsapp message not sending single tick clock icon fix",
+      googleSearchQuery: "whatsapp messages stuck clock icon single checkmark solution",
+      alternativeProblemName: "WhatsApp Server Outage",
+      alternativeSteps: [
+        "Occasionally WhatsApp servers experience global outages.",
+        "Open a web browser on your phone and search 'Is WhatsApp down'. If there is a worldwide outage, wait a short while and it will resume automatically."
+      ]
+    },
+    no_notifications: {
+      problemName: "Silenced WhatsApp Notifications or Battery Restrictions",
+      explanation: "If your phone stays silent when new WhatsApp messages arrive, the phone system or WhatsApp app settings may have muted alerts or put WhatsApp into 'sleep mode'.",
+      steps: [
+        "Open WhatsApp -> Settings (gear icon or 3 dots) -> Notifications -> Ensure 'Conversation Tones' and 'High Priority Notifications' are toggled ON.",
+        "Open your Phone Settings -> Notifications -> WhatsApp -> Ensure 'Allow Notifications' is turned ON with Sound and Banners enabled.",
+        "Check if 'Do Not Disturb' mode is turned on. Swipe down from the top of your phone screen and ensure the Crescent Moon / Do Not Disturb icon is turned OFF.",
+        "Restart your phone once. This resets all notification channels."
+      ],
+      youtubeSearchQuery: "whatsapp notifications not showing tone silent fix",
+      googleSearchQuery: "fix whatsapp notification sound alerts not working",
+      alternativeProblemName: "Specific Chat Muted",
+      alternativeSteps: [
+        "You might have accidentally muted that specific contact or group!",
+        "Open the chat with that person, tap their name at the top, and check if 'Mute notifications' is turned ON. Toggle it OFF."
+      ]
+    },
+    voice_note_fail: {
+      problemName: "Microphone Permission or Proximity Sensor Lock",
+      explanation: "Voice notes require microphone access and use your phone's ear sensor. If the screen goes black or sound gets cut off, it's usually a microphone permission setting or screen cover blocking the sensor.",
+      steps: [
+        "Check Microphone Permissions: Open Phone Settings -> Privacy or Apps -> WhatsApp -> Permissions -> Microphone -> Select 'Allow while using app'.",
+        "When listening to a voice note, hold the phone away from your face or remove thick screen guards that might cover the top speaker sensor.",
+        "Ensure your finger stays firmly pressed on the green microphone button when recording, or swipe UP on the mic icon to lock hands-free recording.",
+        "Clean the bottom microphone hole on your phone with a soft dry cloth."
+      ],
+      youtubeSearchQuery: "whatsapp voice note audio recording problem fix",
+      googleSearchQuery: "fix whatsapp voice message microphone blank black screen",
+      alternativeProblemName: "Volume Set to Lowest",
+      alternativeSteps: [
+        "Play a voice note and immediately press the Volume UP button on the side of your phone to raise the ear-speaker or speakerphone volume."
+      ]
+    },
+    media_download_fail: {
+      problemName: "Storage Full or Auto-Download Disabled",
+      explanation: "If photos or videos fail to download and say 'Download Failed', your phone storage is usually full or media auto-download is disabled on your mobile connection.",
+      steps: [
+        "Check Phone Storage: Open Phone Settings -> Storage. If storage is 99% full, delete a few large unused videos or apps to free up space.",
+        "Open WhatsApp -> Settings -> Storage and Data -> Under 'Media Auto-Download', select 'When using mobile data' and check Photos and Videos.",
+        "Ensure correct Date and Time: Open Phone Settings -> General -> Date & Time -> Set 'Set Automatically' to ON. Incorrect phone date prevents media downloads!",
+        "Restart your phone and try tapping the photo again."
+      ],
+      youtubeSearchQuery: "whatsapp download failed photo video fix simple",
+      googleSearchQuery: "whatsapp photo video download failed storage solution",
+      alternativeProblemName: "Clear WhatsApp Cache",
+      alternativeSteps: [
+        "On Android phones: Settings -> Apps -> WhatsApp -> Storage -> Clear Cache (Do NOT click Clear Data). Re-open WhatsApp."
+      ]
+    },
+    login_code: {
+      problemName: "WhatsApp SMS Verification Code Delay",
+      explanation: "When setting up WhatsApp or switching phones, WhatsApp sends a 6-digit SMS code. If the code doesn't arrive, it's usually due to signal delay or SMS filtering.",
+      steps: [
+        "Check your cell phone signal. Make sure you have at least 2 bars of cellular service (not just Wi-Fi) to receive standard SMS text messages.",
+        "Wait for the timer on WhatsApp screen to count down to zero, then tap 'Call Me'. WhatsApp will call your phone and read the 6-digit code out loud!",
+        "Double-check that you typed your country code and phone number correctly without leading zeros.",
+        "Do NOT request codes repeatedly in a short time. Wait 15 minutes if you reached a limit."
+      ],
+      youtubeSearchQuery: "whatsapp verification code not receiving sms call me fix",
+      googleSearchQuery: "whatsapp 6 digit code not received sms solution",
+      alternativeProblemName: "Two-Step Verification PIN",
+      alternativeSteps: [
+        "If it asks for a 6-digit PIN (not SMS code), that is your custom Two-Step Verification PIN.",
+        "If you forgot it, tap 'Forgot PIN?' to send a reset link to your email."
+      ]
+    }
+  },
+  messenger: {
+    wont_send: {
+      problemName: "Stuck Messenger Message or App Glitch",
+      explanation: "If Messenger chats show a red exclamation mark or stay on 'Sending...', the app lost sync with Facebook's servers. A quick refresh will send your message!",
+      steps: [
+        "Check your internet connection. Toggle Airplane Mode ON for 10 seconds and turn it OFF to refresh your connection.",
+        "Force close Messenger app: Swipe up from the bottom of your screen and swipe Messenger off the screen. Reopen Messenger.",
+        "If a message shows a red exclamation mark, tap on the message and select 'Resend'.",
+        "Make sure you haven't been temporarily rate-limited for sending too many messages at once. Wait a few minutes and try again."
+      ],
+      youtubeSearchQuery: "facebook messenger message not sending red exclamation fix",
+      googleSearchQuery: "messenger messages stuck sending red circle mark solution",
+      alternativeProblemName: "Recipient Blocked or Deactivated",
+      alternativeSteps: [
+        "If you see 'This person is unavailable on Messenger', the other person may have deactivated their Facebook account or blocked messaging."
+      ]
+    },
+    calls_fail: {
+      problemName: "Messenger Call Drop or Camera/Microphone Block",
+      explanation: "If Messenger calls drop immediately or ring once and fail, Messenger needs proper permissions for your microphone and camera, or internet speed is dropping.",
+      steps: [
+        "Check App Permissions: Open Phone Settings -> Apps -> Messenger -> Permissions -> Ensure Microphone and Camera are set to 'Allow'.",
+        "If on Wi-Fi, move closer to your Wi-Fi router. Video calls require a steady, strong signal.",
+        "Close background apps that might be using the camera or microphone (like Zoom, WhatsApp, or Camera app).",
+        "Restart your phone and start the call again."
+      ],
+      youtubeSearchQuery: "messenger video call connecting problem drop fix",
+      googleSearchQuery: "facebook messenger call failed connecting issue",
+      alternativeProblemName: "Switch from Wi-Fi to Mobile Data",
+      alternativeSteps: [
+        "If your home Wi-Fi is weak, turn off Wi-Fi in your phone settings and try calling using Mobile Data."
+      ]
+    },
+    no_sound: {
+      problemName: "Muted Messenger Audio or Media Volume",
+      explanation: "If voice messages in Messenger are silent or you can't hear the caller, your phone's Media Volume or call speaker volume might be turned all the way down.",
+      steps: [
+        "While playing a voice message in Messenger, press the Volume UP button on the side of your phone to raise Media Volume.",
+        "Check your phone's silent switch (on iPhone, ensure the orange silent switch on the side is flipped towards the screen).",
+        "Disconnect any Bluetooth headphones or earbuds that might be connected invisibly in another room.",
+        "Unmute the chat: Tap the person's name at the top of the chat and ensure 'Mute' is toggled OFF."
+      ],
+      youtubeSearchQuery: "messenger voice message no sound low volume fix",
+      googleSearchQuery: "facebook messenger audio message silent fix",
+      alternativeProblemName: "Use Earpiece Speaker",
+      alternativeSteps: [
+        "Hold the phone up to your ear like a normal phone call. Messenger will automatically switch sound to the ear speaker."
+      ]
+    },
+    chat_heads: {
+      problemName: "Messenger Chat Bubbles & Overlay Disabled",
+      explanation: "Chat heads/bubbles let messages pop up over other apps. If they disappeared, the 'Display over other apps' setting in Android was disabled.",
+      steps: [
+        "Open Phone Settings -> Apps -> Messenger -> 'Display over other apps' (or Picture-in-Picture / Chat Heads) -> Toggle ON.",
+        "Open Messenger -> Tap your profile icon (top left) -> Scroll to 'Chat Heads' / 'Bubbles' -> Toggle ON.",
+        "Check Phone Settings -> Notifications -> Messenger -> Ensure 'Show as pop-up' and 'Banners' are turned ON.",
+        "Restart the Messenger app."
+      ],
+      youtubeSearchQuery: "messenger chat heads bubbles not working android fix",
+      googleSearchQuery: "fix facebook messenger chat bubbles disappeared",
+      alternativeProblemName: "System Update Compatibility",
+      alternativeSteps: [
+        "Ensure Messenger is updated to the latest version via Play Store or App Store."
       ]
     }
   },

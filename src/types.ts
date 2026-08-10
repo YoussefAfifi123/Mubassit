@@ -1,4 +1,4 @@
-export type DeviceType = 'laptop_computer' | 'phone_tablet' | 'internet_wifi' | 'printer' | 'tv_remote' | 'facebook' | 'other';
+export type DeviceType = 'laptop_computer' | 'phone_tablet' | 'internet_wifi' | 'printer' | 'tv_remote' | 'facebook' | 'whatsapp' | 'messenger' | 'other';
 
 export interface DeviceOption {
   id: DeviceType;

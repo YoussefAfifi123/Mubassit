@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  MessageCircle,
+  MessageSquare
 } from 'lucide-react';
 
 interface DeviceHardwareDiagramProps {
@@ -207,6 +209,50 @@ const HARDWARE_HOTSPOTS: Record<DeviceType, Hotspot[]> = {
       icon: RotateCcw
     }
   ],
+  whatsapp: [
+    {
+      id: 'wa_mic',
+      nameEn: 'Voice Note Microphone',
+      nameAr: 'ميكروفون الملاحظات الصوتية',
+      xPercent: 85,
+      yPercent: 80,
+      descEn: 'Hold the green microphone icon to record. Drag up to lock hands-free recording.',
+      descAr: 'اضغط مع الاستمرار على أيقونة الميكروفون الأخضر للتسجيل. اسحب لفوق للتثبيت.',
+      icon: MessageCircle
+    },
+    {
+      id: 'wa_settings',
+      nameEn: 'App Settings & Notifications',
+      nameAr: 'الإعدادات والإشعارات',
+      xPercent: 85,
+      yPercent: 20,
+      descEn: 'Tap 3 dots or gear icon to check notification sound settings and chat backup.',
+      descAr: 'اضغط على النقاط الثلاث أو الترس للتحقق من إعدادات الصوت والنسخ الاحتياطي.',
+      icon: RotateCcw
+    }
+  ],
+  messenger: [
+    {
+      id: 'msg_calls',
+      nameEn: 'Voice & Video Call Buttons',
+      nameAr: 'أزرار المكالمات والصوت',
+      xPercent: 80,
+      yPercent: 15,
+      descEn: 'Located at the top right inside any chat. Tap camera or phone icon to start a call.',
+      descAr: 'موجودة في الأعلى على اليمين داخل أي محادثة. اضغط الكاميرا أو الهاتف لبدء مكالمة.',
+      icon: MessageSquare
+    },
+    {
+      id: 'msg_bubbles',
+      nameEn: 'Chat Heads / Notification Bubbles',
+      nameAr: 'فقاعات المحادثة والإشعارات',
+      xPercent: 50,
+      yPercent: 50,
+      descEn: 'Enable "Display over other apps" in phone settings if chat bubbles disappear.',
+      descAr: 'فعل خيار "الظهور فوق التطبيقات" في إعدادات الموبايل لو اختفت فقاعات المحادثة.',
+      icon: Info
+    }
+  ],
   other: [
     {
       id: 'general_power',
@@ -266,6 +312,8 @@ export const DeviceHardwareDiagram: React.FC<DeviceHardwareDiagramProps> = ({
               {deviceType === 'printer' && <Printer className="w-36 h-36" />}
               {deviceType === 'tv_remote' && <Tv className="w-36 h-36" />}
               {deviceType === 'facebook' && <Facebook className="w-32 h-32 text-blue-600" />}
+              {deviceType === 'whatsapp' && <MessageCircle className="w-32 h-32 text-emerald-600" />}
+              {deviceType === 'messenger' && <MessageSquare className="w-32 h-32 text-blue-500" />}
               {deviceType === 'other' && <HelpCircle className="w-32 h-32" />}
             </div>
 

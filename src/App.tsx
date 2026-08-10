@@ -580,8 +580,8 @@ If you have a moment later or on the weekend, could you help me take a look? No 
                     id={`device-card-${dev.id}`}
                     onClick={() => {
                       setSelectedDevice(dev.id);
-                      // If device is other or facebook, skip OS step
-                      if (dev.id === 'other' || dev.id === 'facebook') {
+                      // If device is other, facebook, whatsapp, or messenger, skip OS step
+                      if (dev.id === 'other' || dev.id === 'facebook' || dev.id === 'whatsapp' || dev.id === 'messenger') {
                         setSelectedOs('unknown');
                         setCurrentStep('symptoms');
                       } else {
@@ -632,7 +632,7 @@ If you have a moment later or on the weekend, could you help me take a look? No 
 
             {/* MAIN CHOICE CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" id="os-cards-grid">
-              {OS_OPTIONS[selectedDevice as Exclude<DeviceType, 'other'>]?.map((opt) => {
+              {OS_OPTIONS[selectedDevice as Exclude<DeviceType, 'other' | 'facebook' | 'whatsapp' | 'messenger'>]?.map((opt) => {
                 const localizedOpt = TRANSLATED_OS_OPTIONS[walkthroughLang][opt.id as keyof typeof TRANSLATED_OS_OPTIONS['en']] || opt;
                 return (
                   <button

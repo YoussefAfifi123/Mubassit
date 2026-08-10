@@ -382,6 +382,8 @@ export const TRANSLATED_DEVICES: Record<"en" | "ar", Record<DeviceType, string>>
     printer: "printer",
     tv_remote: "TV or remote control",
     facebook: "Facebook",
+    whatsapp: "WhatsApp",
+    messenger: "Messenger",
     other: "device"
   },
   ar: {
@@ -391,6 +393,8 @@ export const TRANSLATED_DEVICES: Record<"en" | "ar", Record<DeviceType, string>>
     printer: "الطابعة",
     tv_remote: "التلفزيون / الريموت",
     facebook: "فيسبوك",
+    whatsapp: "واتساب",
+    messenger: "ماسنجر",
     other: "الجهاز"
   }
 };
@@ -423,7 +427,14 @@ export const TRANSLATED_SYMPTOMS: Record<"en" | "ar", Record<string, string>> = 
     login_error: "Cannot log in / Forgot password",
     hacked_alert: "Scary 'Account Hacked' or lock message",
     not_loading: "Facebook app/website won't open at all",
-    no_posts: "Feed won't update or photos won't load"
+    no_posts: "Feed won't update or photos won't load",
+    wont_send: "Messages won't send / Stuck",
+    no_notifications: "No notifications for new messages",
+    voice_note_fail: "Cannot record or hear voice notes",
+    media_download_fail: "Photos or videos won't download",
+    login_code: "WhatsApp code or account issue",
+    calls_fail: "Voice or video calls keep dropping",
+    chat_heads: "Chat bubbles / notifications disappeared"
   },
   ar: {
     frozen: "الشاشة معلقة ومتجمدة ومش بتتحرك",
@@ -451,7 +462,14 @@ export const TRANSLATED_SYMPTOMS: Record<"en" | "ar", Record<string, string>> = 
     login_error: "مشكلة في تسجيل الدخول أو كلمة المرور",
     hacked_alert: "رسالة تحذير اختراق أو قفل الحساب",
     not_loading: "تطبيق أو موقع الفيس بوك مش بيفتح خالص",
-    no_posts: "المنشورات والصور مش بتتحمل جديدة"
+    no_posts: "المنشورات والصور مش بتتحمل جديدة",
+    wont_send: "الرسائل مش بتتبعت ومتعلقة",
+    no_notifications: "مفيش إشعارات للرسائل الجديدة",
+    voice_note_fail: "مشكلة في تسجيل أو سماع الرسائل الصوتية",
+    media_download_fail: "الصور والفيديوهات مش بتتحمل",
+    login_code: "مشكلة في كود واتساب أو توثيق الحساب",
+    calls_fail: "المكالمات بتفصل ومش راضية تجمع",
+    chat_heads: "إشعارات محادثات ماسنجر اختفت"
   }
 };
 
@@ -472,7 +490,9 @@ export const TRANSLATED_NEGATIVES: Record<"en" | "ar", Record<string, string>> =
     close_enough: "Standing close to TV",
     know_password: "Writing password carefully",
     internet_fine: "Internet and other apps work fine",
-    real_app: "Using official Facebook app"
+    real_app: "Using official app",
+    phone_number_active: "SIM card is active and receiving SMS",
+    facebook_working: "Main Facebook account is working fine"
   },
   ar: {
     has_power: "الكهربا واصلة والجهاز محطوط في الشاحن",
@@ -489,7 +509,9 @@ export const TRANSLATED_NEGATIVES: Record<"en" | "ar", Record<string, string>> =
     close_enough: "واقف قريب جداً من الشاشة ومفيش عائق",
     know_password: "بكتب كلمة السر بحرص وبدون أخطاء",
     internet_fine: "النت والتطبيقات التانية شغالين تمام",
-    real_app: "بستخدم تطبيق الفيس بوك الرسمي"
+    real_app: "بستخدم التطبيق الرسمي",
+    phone_number_active: "شريحة الخط شغالة وبتستقبل رسائل SMS عادية",
+    facebook_working: "حساب الفيس بوك الرئيسي شغال بدون مشاكل"
   }
 };
 
@@ -616,6 +638,14 @@ export const TRANSLATED_DEVICE_SELECTIONS: Record<"en" | "ar", Record<DeviceType
       label: "Facebook Help",
       description: "Logins, password recovery, scary locked screen warnings, or issues loading posts."
     },
+    whatsapp: {
+      label: "WhatsApp Help",
+      description: "Sending messages, voice notes, photo/video downloads, status, or verification code issues."
+    },
+    messenger: {
+      label: "Messenger Help",
+      description: "Facebook Messenger chats, calls, voice notes, and notification fixes."
+    },
     other: {
       label: "Something Else",
       description: "Smart speakers, smartwatches, digital cameras, or other devices."
@@ -645,6 +675,14 @@ export const TRANSLATED_DEVICE_SELECTIONS: Record<"en" | "ar", Record<DeviceType
     facebook: {
       label: "مساعدة فيس بوك",
       description: "مشاكل تسجيل الدخول، استرجاع كلمة السر، رسائل القفل والتحذيرات اللي بتخوف، أو عدم ظهور المنشورات."
+    },
+    whatsapp: {
+      label: "مساعدة واتساب",
+      description: "مشاكل إرسال الرسائل، الملاحظات الصوتية، تحميل الصور، الحالة، أو كود التفعيل."
+    },
+    messenger: {
+      label: "مساعدة ماسنجر",
+      description: "دردشات ماسنجر فيس بوك، المكالمات، الرسائل الصوتية، وإصلاح الإشعارات."
     },
     other: {
       label: "حاجة تانية خالص",
