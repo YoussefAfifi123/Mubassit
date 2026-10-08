@@ -41,6 +41,7 @@ import {
   MessageCircle,
   Share2
 } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { DEVICES, OS_OPTIONS, SYMPTOMS, NEGATIVE_SYMPTOMS, getLocalDiagnostic, LOCAL_DIAGNOSTICS } from './data';
 import { LOCAL_ARABIC_TRANSLATIONS } from './data_arabic';
 import { DeviceType, DiagnosticResult, HistoryItem } from './types';
@@ -1859,6 +1860,7 @@ If you have a moment later or on the weekend, could you help me take a look? No 
           </div>
         </div>
       )}
+      <Analytics />
     </div>
   );
 }
